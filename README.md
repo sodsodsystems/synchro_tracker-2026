@@ -1,39 +1,102 @@
+<div align="center">
+
 # Synchro Tracker
 
-Synchronized Dancing Tracker for the Academic Year 2026. There is no build step and no server. Open a file in a browser, or host the repo on GitHub Pages.
+**Practice management tools for ICpEP.SE UST-Legazpi, Academic Year 2026**
 
-## Tools
+Live countdowns, attendance, ambagan and fines, all in the browser with no server.
+
+![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
+![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+![GitHub Pages](https://img.shields.io/badge/Hosted_on-GitHub_Pages-222222?style=for-the-badge&logo=github&logoColor=white)
+
+<img src="./assets/preview.png" alt="Tardiness Tracker on a phone" width="280">
+
+</div>
+
+---
+
+## Contents
+
+- [About the Project](#-about-the-project)
+- [Included Tools](#-included-tools)
+- [Features](#-features-tardiness-tracker)
+- [Getting Started](#-getting-started)
+- [Data and Privacy](#-data-and-privacy)
+- [Tech Stack](#-tech-stack)
+
+---
+
+## 📖 About the Project
+
+Synchro Tracker streamlines the management of group practices for Academic Year 2026. It runs entirely on the client side, so there is no build step and no backend server. Open the files in a browser, or host the repository for free on GitHub Pages.
+
+---
+
+## 🛠️ Included Tools
 
 | Tool | File | Description |
 |---|---|---|
-| **Tardiness Tracker** | [`Tardiness Tracker System.html`](./Tardiness%20Tracker%20System.html) | Live countdown to call time, per-person attendance (On time / Late / Absent), ambagan and fines, and payment tracking |
-| **Synchro Tracker** | [`SYNCHRO_TRACKER.html`](./SYNCHRO_TRACKER.html) | Schedule and synchronization tracker |
+| ⏱️ **Tardiness Tracker** | [`Tardiness Tracker System.html`](./Tardiness%20Tracker%20System.html) | Live countdown to call time, per-person attendance (On time / Late / Absent), ambagan and fines, and payment tracking |
+| 📅 **Synchro Tracker** | [`SYNCHRO_TRACKER.html`](./SYNCHRO_TRACKER.html) | Master schedule and synchronization tracker |
 
-## Tardiness Tracker features
+---
 
-- Live countdown to call time with a configurable grace period
-- Attendance marking for 27 students and 5 faculty
-- Ambagan and fines calculated automatically per person
-- Per-person payment tracking with Paid, Partial and Unpaid status
-- One-tap "Copy summary" for group chats
-- Works on phones, with a layout built for small screens
-- State is saved in the browser's `localStorage`
+## ✨ Features (Tardiness Tracker)
 
-## Usage
+- **Live countdown:** set a call time with a built-in grace period.
+- **Attendance marking:** one tap per person for 27 students and 5 faculty.
+- **Automated finances:** ambagan (contributions) and fines are calculated per person from arrival status.
+- **Payment tracking:** mark each person as Paid, Partial or Unpaid.
+- **Quick share:** "Copy summary" puts a ready-to-paste message on your clipboard for group chats.
+- **Mobile-first design:** the layout is built for small screens.
+- **Local storage:** state is saved in the browser's `localStorage`.
 
-1. Download or clone the repo.
-2. Open either HTML file directly in a browser.
+---
 
-Saved data stays on the device and browser where it was entered. Clearing site data erases it. Fonts load from Google Fonts, and the pages fall back to system fonts when offline.
+## 🚀 Getting Started
 
-## GitHub Pages
+There is nothing to install.
 
-1. Go to **Settings → Pages**.
-2. Set **Source** to **Deploy from a branch**, choose `main` and `/ (root)`, then save.
-3. The site will be live at `https://<your-username>.github.io/synchro_tracker-2026/`.
+### Run locally
 
-Tool pages are served at their file names, for example `.../Tardiness%20Tracker%20System.html`.
+```bash
+git clone https://github.com/your-username/synchro_tracker-2026.git
+```
 
-## Tech stack
+Then open `SYNCHRO_TRACKER.html` or `Tardiness Tracker System.html` in any browser.
 
-Pure HTML, CSS and vanilla JavaScript. No dependencies and no build step.
+### Host on GitHub Pages
+
+1. Open your repository on GitHub and go to **Settings → Pages**.
+2. Under **Source**, choose **Deploy from a branch**.
+3. Select the `main` branch and the `/ (root)` folder, then click **Save**.
+
+Your site will be live at `https://your-username.github.io/synchro_tracker-2026/`.
+
+> Tool pages are served at their file names, for example `.../Tardiness%20Tracker%20System.html`.
+
+---
+
+## 💾 Data and Privacy
+
+- **Stays on your device:** saved data lives in the browser where it was entered, via `localStorage`.
+- **Clearing data erases it:** clearing site data or cache removes the tracker's history.
+- **Works offline:** fonts load from Google Fonts and fall back to system fonts without a connection.
+
+---
+
+## 💻 Tech Stack
+
+Pure HTML5, CSS3 and vanilla JavaScript. No dependencies, no build step and no `npm install`.
+
+---
+
+<div align="center">
+
+If this tool helps your team, consider giving the repo a ⭐
+
+Made for **ICpEP.SE UST-Legazpi** · A.Y. 2026
+
+</div>
