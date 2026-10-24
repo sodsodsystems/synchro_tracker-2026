@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="ICpEP.SE UST-Legazpi event management tools — Tardiness Tracker and Synchro Tracker.">
+  <title>Synchro Tracker — ICpEP.SE UST-Legazpi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+  :root {
+    color-scheme: light dark;
+    --red:#d7263d; --on-red:#fff;
+    --bg:#fff; --ink:#1d1517; --muted:#7a6c6f;
+    --card:rgba(255,255,255,0.65); --card-edge:rgba(255,255,255,0.85);
+    --line:rgba(70,20,28,0.09);
+    --shadow:0 16px 48px rgba(190,40,58,0.13),inset 0 1px 0 rgba(255,255,255,0.95);
+    --glow-a:rgba(255,82,96,0.32); --glow-b:rgba(255,168,138,0.36); --glow-c:rgba(255,110,150,0.24);
+    --font:"Figtree",system-ui,-apple-system,sans-serif;
+  }
+  @media(prefers-color-scheme:dark){:root{
+    --bg:#0f0a0b; --ink:#f5efef; --muted:#a89296;
+    --card:rgba(40,18,22,0.65); --card-edge:rgba(255,255,255,0.07);
+    --line:rgba(255,255,255,0.08);
+    --shadow:0 16px 48px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.06);
+    --glow-a:rgba(215,38,61,0.18); --glow-b:rgba(180,60,80,0.14); --glow-c:rgba(200,40,60,0.12);
+  }}
+  *,*::before,*::after{box-sizing:border-box;margin:0;}
+  body{background:var(--bg);color:var(--ink);font-family:var(--font);min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 20px 48px;}
+  /* glow */
+  .glow{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+  .glow i{position:absolute;border-radius:50%;filter:blur(80px);}
+  .glow i:nth-child(1){width:55vw;height:55vw;left:-15vw;top:-10vh;background:var(--glow-a);}
+  .glow i:nth-child(2){width:50vw;height:50vw;right:-18vw;top:35vh;background:var(--glow-b);}
+  .glow i:nth-child(3){width:45vw;height:45vw;left:5vw;bottom:-12vh;background:var(--glow-c);}
+  /* content */
+  .wrap{position:relative;z-index:1;max-width:520px;width:100%;display:flex;flex-direction:column;gap:24px;}
+  /* header */
+  .hero{text-align:center;padding:0 8px;}
+  .org{font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--red);margin-bottom:10px;}
+  h1{font-size:clamp(2rem,8vw,2.8rem);font-weight:800;letter-spacing:-0.03em;line-height:1.1;}
+  h1 em{font-style:normal;color:var(--red);}
+  .sub{margin-top:10px;color:var(--muted);font-size:0.95rem;line-height:1.6;}
+  /* tool cards */
+  .tools{display:flex;flex-direction:column;gap:14px;}
+  .tool{display:flex;align-items:center;gap:16px;background:var(--card);-webkit-backdrop-filter:blur(28px) saturate(180%);backdrop-filter:blur(28px) saturate(180%);border:1px solid var(--card-edge);border-radius:24px;box-shadow:var(--shadow);padding:20px;text-decoration:none;color:inherit;transition:transform 0.2s,box-shadow 0.2s;-webkit-tap-highlight-color:transparent;}
+  .tool:hover{transform:translateY(-2px);box-shadow:0 22px 56px rgba(190,40,58,0.18),inset 0 1px 0 rgba(255,255,255,0.95);}
+  @media(prefers-color-scheme:dark){.tool:hover{box-shadow:0 22px 56px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.06);}}
+  .tool:active{transform:scale(0.98);}
+  .icon{width:52px;height:52px;border-radius:15px;background:linear-gradient(145deg,#ee4559,var(--red));display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;box-shadow:0 6px 18px rgba(215,38,61,0.30);}
+  .info{min-width:0;flex:1;}
+  .tool-name{font-size:1.05rem;font-weight:700;letter-spacing:-0.01em;}
+  .tool-desc{font-size:0.82rem;color:var(--muted);margin-top:3px;line-height:1.5;}
+  .arrow{color:var(--muted);font-size:1.1rem;flex-shrink:0;transition:transform 0.2s,color 0.2s;}
+  .tool:hover .arrow{transform:translateX(3px);color:var(--red);}
+  /* footer */
+  footer{text-align:center;font-size:0.75rem;color:var(--muted);}
+  @media(prefers-reduced-motion:reduce){.tool,.arrow{transition:none;}}
+  </style>
+</head>
+<body>
+<div class="glow" aria-hidden="true"><i></i><i></i><i></i></div>
+<div class="wrap">
+  <header class="hero">
+    <p class="org">ICpEP.SE · UST-Legazpi</p>
+    <h1>Synchro <em>Tracker</em></h1>
+    <p class="sub">Event management tools for the organization. All data stays on your device.</p>
+  </header>
+
+  <nav class="tools" aria-label="Available tools">
+    <a class="tool" href="Tardiness%20Tracker%20System.html" aria-label="Open Tardiness Tracker">
+      <div class="icon" aria-hidden="true">⏱</div>
+      <div class="info">
+        <div class="tool-name">Tardiness Tracker</div>
+        <div class="tool-desc">Attendance, countdown, fines & ambagan payment tracking</div>
+      </div>
+      <span class="arrow" aria-hidden="true">›</span>
+    </a>
+    <a class="tool" href="SYNCHRO_TRACKER.html" aria-label="Open Synchro Tracker">
+      <div class="icon" aria-hidden="true">📅</div>
+      <div class="info">
+        <div class="tool-name">Synchro Tracker</div>
+        <div class="tool-desc">Officer schedules, free-time finder & committee view</div>
+      </div>
+      <span class="arrow" aria-hidden="true">›</span>
+    </a>
+  </nav>
+
+  <footer>
+    <p>ICpEP.SE UST-Legazpi &nbsp;·&nbsp; All data stored locally in your browser</p>
+  </footer>
+</div>
+</body>
+</html>

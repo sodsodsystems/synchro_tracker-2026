@@ -1,0 +1,17 @@
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.suo
+*.user
+
+# Local dev
+*.log
+node_modules/
+
+# Private design rules (optional: remove this line to publish)
+UIUX_RULES.md
