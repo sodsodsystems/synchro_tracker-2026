@@ -202,6 +202,19 @@
     .stat-grid{grid-template-columns:1fr 1fr;}
   }
   @media(prefers-reduced-motion:reduce){.toast,.card-enter,.btn,.pick button,.field input,.amt,.tab-btn,.fchip{transition:none;animation:none;}}
+  /* ── EVENT LIST ─────────────────────────────────────── */
+  .evt-header{display:flex;align-items:center;justify-content:space-between;padding:0 4px 6px;margin-top:16px;}
+  .evt-list{display:flex;flex-direction:column;gap:7px;}
+  .evt-item{display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--field);border:1px solid var(--line);border-radius:18px;transition:border-color .2s,box-shadow .2s;}
+  .evt-item.active{border-color:var(--red);box-shadow:0 0 0 2px rgba(215,38,61,.12);}
+  @media(prefers-color-scheme:dark){.evt-item.active{box-shadow:0 0 0 2px rgba(215,38,61,.18);}}
+  .evt-info{flex:1 1 0;min-width:0;}
+  .evt-name{display:block;font-weight:600;font-size:.95rem;overflow-wrap:anywhere;}
+  .evt-meta{display:block;font-size:.76rem;color:var(--muted);margin-top:2px;}
+  .evt-actions{display:flex;gap:5px;flex-shrink:0;}
+  .evt-empty{color:var(--muted);font-size:.88rem;padding:10px 4px;text-align:center;}
+  .divider-label{display:flex;align-items:center;gap:10px;margin:18px 0 2px;color:var(--muted);font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;}
+  .divider-label::before,.divider-label::after{content:"";flex:1;height:1px;background:var(--line);}
   </style>
 </head>
 <body>
@@ -211,7 +224,13 @@
   <!-- ═══ SCREEN 1: SETUP ═══ -->
   <section id="screen-setup" class="card" aria-labelledby="setupTitle">
     <h1 id="setupTitle">Tardiness <span>Tracker</span></h1>
-    <p class="lede" id="setupDesc">Set the event details. Anyone arriving after the call time plus grace period counts as late.</p>
+    <p class="lede" id="setupDesc">Select a saved event below, or fill in the form to create a new one.</p>
+    <div class="evt-header">
+      <span class="eyebrow">Your Events</span>
+      <button type="button" class="btn small quiet" data-action="new-event">+ New</button>
+    </div>
+    <div id="evt-list" class="evt-list"></div>
+    <div class="divider-label"><span id="form-label">New Event</span></div>
     <form class="form" id="setupForm" aria-describedby="setupDesc">
       <div class="field wide"><label for="eventName">Event name</label><input type="text" id="eventName" autocomplete="off" required></div>
       <div class="field"><label for="eventDate">Date</label><input type="date" id="eventDate" required></div>
@@ -221,7 +240,7 @@
         <input type="number" id="grace" min="0" max="180" step="1" inputmode="numeric" required aria-describedby="graceHint">
         <span class="hint" id="graceHint">Use 0 for no grace period.</span>
       </div>
-      <button type="submit" class="btn primary">Start</button>
+      <button type="submit" class="btn primary" id="setupSubmit">Open Event</button>
     </form>
   </section>
 
@@ -292,8 +311,8 @@
 <script>
 (function () {
   /* ── CONSTANTS ───────────────────────────────────────── */
-  var TRACK_FACULTY = true; // set false to exclude faculty from ambagan
-  var KEY  = "tardiness-tracker-v4";
+  var TRACK_FACULTY = true;
+  var KEY  = "tardiness-tracker-v5";
   var PESO = "₱";
   var STUDENTS = ["MARGAUX","FRENCHIE","MJ","DEXTER","KIRK","KING","KIRSTEN","JUSTINE","JAZMINE","JC","ALLAN","GLYCEL","CASEY","CHLOE","ERICA","JADE","RAFA","YESHA","AIESHA","TRICIA","LAURICE","RHENOA","KRISTINE","VANCE","JAMES","VINCENT","JK"];
   var FACULTY  = ["ENGR. MUSNI","ENGR. KLEO","ENGR. BARRA","ENGR. NEIL","ENGR. CLARK"];
@@ -306,21 +325,24 @@
   var AMB_ROSTER = TRACK_FACULTY ? ALL : GROUPS[0].people;
 
   /* ── STATE ───────────────────────────────────────────── */
-  var d = new Date();
   var state = {
+    events:{}, activeId:null,
     screen:"setup", tab:"attendance", filter:"all",
-    cfg:{ eventName:"Dance Practice", eventDate:d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()), callTime:"08:00", grace:5, fine:100, ambagan:0 },
+    cfg:{ eventName:"", eventDate:"", callTime:"08:00", grace:5, fine:100, ambagan:0 },
     marks:{}, payments:{}
   };
   try {
     var raw = localStorage.getItem(KEY);
     if (raw) {
       var s = JSON.parse(raw);
-      if (s.cfg)      Object.assign(state.cfg, s.cfg);
+      if (s.events)   state.events   = s.events;
+      if (s.activeId) state.activeId = s.activeId;
+      if (s.cfg)      state.cfg      = s.cfg;
       if (s.marks)    state.marks    = s.marks;
       if (s.payments) state.payments = s.payments;
       if (s.screen === "run" || s.screen === "setup") state.screen = s.screen;
       if (s.tab    === "attendance" || s.tab === "ambagan") state.tab = s.tab;
+      if (s.filter)   state.filter   = s.filter;
     }
   } catch(e){}
 
@@ -465,6 +487,52 @@
 
   function renderAmbagan(){ renderAmbaganSummary(); renderAmbaganList(); }
 
+  /* ── EVENT LIST ──────────────────────────────────────── */
+  function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,5); }
+
+  function renderEventList(){
+    var el=$("evt-list"); if(!el)return;
+    var keys=Object.keys(state.events||{});
+    if(!keys.length){ el.innerHTML='<p class="evt-empty">No saved events yet. Fill in the form below to start.</p>'; return; }
+    keys.sort(function(a,b){
+      var da=(state.events[a]&&state.events[a].cfg&&state.events[a].cfg.eventDate)||"";
+      var db=(state.events[b]&&state.events[b].cfg&&state.events[b].cfg.eventDate)||"";
+      return db>da?1:db<da?-1:0;
+    });
+    el.innerHTML=keys.map(function(id){
+      var ev=state.events[id], c=ev.cfg||{};
+      var isActive=id===state.activeId;
+      var marked=Object.keys(ev.marks||{}).length;
+      return'<div class="evt-item'+(isActive?" active":"")+'" data-evid="'+id+'">'+
+        '<div class="evt-info">'+
+          '<strong class="evt-name">'+esc(c.eventName||"Untitled")+'</strong>'+
+          '<span class="evt-meta">'+esc(fmtDate(c.eventDate||""))+(marked?' · '+marked+' marked':'')+'</span>'+
+        '</div>'+
+        '<div class="evt-actions">'+
+          '<button class="btn small" data-evaction="open" data-evid="'+id+'">Open</button>'+
+          '<button class="btn small quiet" data-evaction="del" data-evid="'+id+'" aria-label="Delete '+esc(c.eventName||"event")+'">✕</button>'+
+        '</div>'+
+      '</div>';
+    }).join("");
+  }
+
+  function populateForm(){
+    var c=state.cfg;
+    $("eventName").value=c.eventName||""; $("eventDate").value=c.eventDate||"";
+    $("callTime").value=c.callTime||"08:00"; $("grace").value=c.grace!=null?c.grace:5;
+    $("ambagan").value=c.ambagan||""; $("fine").value=c.fine||100;
+    $("form-label").textContent=state.activeId?"Edit Event":"New Event";
+    $("setupSubmit").textContent=state.activeId?"Open Event":"Create & Open";
+  }
+
+  function loadEvent(id){
+    var ev=state.events[id];
+    state.activeId=id;
+    state.cfg=ev.cfg; state.marks=ev.marks; state.payments=ev.payments;
+    state.tab="attendance"; state.filter="all";
+    persist();
+  }
+
   /* ── TAB & FILTER ──────────────────────────────────── */
   function switchTab(tab){
     state.tab=tab; persist();
@@ -484,6 +552,7 @@
   function showScreen(name){
     state.screen=name; $("screen-setup").hidden=name!=="setup"; $("screen-run").hidden=name!=="run"; persist();
     if(name==="run"){ renderAll(); switchTab(state.tab); animateCards(); }
+    if(name==="setup"){ renderEventList(); populateForm(); }
     window.scrollTo(0,0);
   }
 
@@ -529,21 +598,50 @@
     return lines.join("\n");
   }
 
-  /* ── EVENTS ──────────────────────────────────────────── */
-  // Setup form inputs
-  $("eventName").value=state.cfg.eventName; $("eventDate").value=state.cfg.eventDate;
-  $("callTime").value=state.cfg.callTime;   $("grace").value=state.cfg.grace;
-  $("ambagan").value=state.cfg.ambagan||""; $("fine").value=state.cfg.fine||"";
-  ["eventName","eventDate","callTime"].forEach(function(id){ $(id).addEventListener("input",function(){ state.cfg[id]=this.value; persist(); }); });
-  $("grace").addEventListener("input",function(){ state.cfg.grace=num(this.value); persist(); });
+  /* ── WIRE-UP ─────────────────────────────────────────── */
+  // Validate saved activeId
+  if(state.activeId && !state.events[state.activeId]){ state.activeId=null; state.screen="setup"; }
+
+  // Live-sync form → state.cfg (and mirror into events map)
+  ["eventName","eventDate","callTime"].forEach(function(id){
+    $(id).addEventListener("input",function(){
+      state.cfg[id]=this.value;
+      if(state.activeId && state.events[state.activeId]) state.events[state.activeId].cfg[id]=this.value;
+      persist();
+    });
+  });
+  $("grace").addEventListener("input",function(){
+    state.cfg.grace=num(this.value);
+    if(state.activeId && state.events[state.activeId]) state.events[state.activeId].cfg.grace=num(this.value);
+    persist();
+  });
   ["ambagan","fine"].forEach(function(id){
     $(id).addEventListener("input",function(){
-      state.cfg[id]=num(this.value); persist();
+      state.cfg[id]=num(this.value);
+      if(state.activeId && state.events[state.activeId]) state.events[state.activeId].cfg[id]=num(this.value);
+      persist();
       renderSummary(); renderMoney(); renderAmbaganSummary();
       if(state.tab==="ambagan") renderAmbaganList();
     });
   });
-  $("setupForm").addEventListener("submit",function(e){ e.preventDefault(); showScreen("run"); });
+
+  // Form submit → create new event or update existing
+  $("setupForm").addEventListener("submit",function(e){
+    e.preventDefault();
+    var name=$("eventName").value.trim();
+    if(!name){ $("eventName").focus(); return; }
+    if(!state.activeId){
+      var nid=uid();
+      state.events[nid]={ cfg:{ eventName:name, eventDate:$("eventDate").value, callTime:$("callTime").value, grace:num($("grace").value), fine:num($("fine").value), ambagan:num($("ambagan").value) }, marks:{}, payments:{} };
+      loadEvent(nid);
+    } else {
+      state.cfg.eventName=name; state.cfg.eventDate=$("eventDate").value;
+      state.cfg.callTime=$("callTime").value; state.cfg.grace=num($("grace").value);
+      state.cfg.fine=num($("fine").value); state.cfg.ambagan=num($("ambagan").value);
+      persist();
+    }
+    showScreen("run");
+  });
 
   // Payment inputs (delegation on document)
   document.addEventListener("input",function(e){
@@ -557,6 +655,25 @@
   // Click delegation
   document.addEventListener("click",function(e){
     var b=e.target.closest("button"); if(!b)return;
+
+    // Event list: open / delete
+    var ea=b.getAttribute("data-evaction"), eid=b.getAttribute("data-evid");
+    if(ea==="open"){ loadEvent(eid); showScreen("run"); return; }
+    if(ea==="del"){
+      var evName2=state.events[eid]&&state.events[eid].cfg&&state.events[eid].cfg.eventName||"this event";
+      if(!confirm("Delete \""+evName2+"\"? This cannot be undone.")) return;
+      delete state.events[eid];
+      if(state.activeId===eid){ state.activeId=null; state.cfg={ eventName:"", eventDate:"", callTime:"08:00", grace:5, fine:100, ambagan:0 }; state.marks={}; state.payments={}; }
+      persist(); renderEventList(); populateForm(); return;
+    }
+    // New event button
+    if(b.getAttribute("data-action")==="new-event"){
+      state.activeId=null;
+      var d3=new Date();
+      state.cfg={ eventName:"", eventDate:d3.getFullYear()+"-"+pad(d3.getMonth()+1)+"-"+pad(d3.getDate()), callTime:"08:00", grace:5, fine:100, ambagan:0 };
+      state.marks={}; state.payments={};
+      populateForm(); $("eventName").focus(); return;
+    }
 
     // Tab switching
     var dt=b.getAttribute("data-tab");
@@ -611,7 +728,7 @@
   });
 
   setInterval(tick,1000);
-  showScreen(state.screen);
+  if(state.screen==="run" && state.activeId && state.events[state.activeId]){ showScreen("run"); } else { showScreen("setup"); }
   window.scrollTo(0,0);
 })();
 </script>
